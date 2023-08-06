@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Средневековая диалоговая игра</title>
+    <style>
+        @font-face {
+            font-family: 'MedievalSharp';
+            src: url('https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap');
+        }
+
+        body {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 20px;
+            background-color: #f5e3c7;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        #dialogue-box {
+            background-color: #d4c7ac;
+            border: 2px solid #7d6c55;
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #592f00;
+        }
+
+        p {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #4c1f00;
+        }
+
+        button {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 20px;
+            background-color: #875c4e;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="dialogue-box">
+    <h1>Логос Гееса</h1>
+    <p id="question"></p>
+    <div id="button-container">
+        <!-- Кнопки будут добавлены с помощью JavaScript -->
+    </div>
+    <p id="result-message"></p>
+    <button id="restart-button" style="display: none;">Начать заново</button>
+</div>
+
+<script>
+        class DialogGame {
+            constructor() {
+                this.background = 'url("path/to/initial-background.jpg")';
+              this.dialogueData = [
+                    {
+                        question: 'Добро пожаловать в мрачную и жестокую вселенную, где планета Геес стоит в центре древнего множества миров, окутанных тайной и тьмой. Здесь, среди бескрайних лесов и скалистых гор, развиваются истории боли, предательства и безжалостной борьбы за власть.',
+                        answers: [
+                            { text: '...', value: 0 }
+                        ]
+                    },
+                    {
+                        question: 'Геес – это планета, где тиран Пыниус, окаменевший в своей жажде власти, правит своей железной империей Русиус. Его подданные страшатся даже шепота в его присутствии, а его враги подвергаются невообразимым мукам. Иерархия Русиуса – это паутина интриг и коварства, в которой каждый шаг может оказаться последним.',
+                        answers: [
+                            { text: '...', value: 0 }
+                        ]
+                    },
+                    {
+                        question: 'Темные алтари, служащие кровавым богам, украшают храмы Гееса. Жестокие ритуалы и жертвоприношения стали неотъемлемой частью жизни народов этого мира. Зардас, бог власти, жаждет поклонения и подчинения, и те, кто осмелились его оскорбить, забывают, что такое милосердие.',
+                        answers: [
+                            { text: '...', value: 0 }
+                        ]
+                    },
+                    {
+                        question: 'Что же предпримешь ты?',
+                        answers: [
+                            { text: 'Восстать против культа Пыниуса и сражаться за свободу и справедливость.', value: 5 },
+                            { text: 'Присоединиться к культу Пыниуса и стать его кровавым приверженцем.', value: 10 },
+                            { text: 'Потеряться в нейтральности и путешествовать среди теней, не находя своего пути.', value: 15 }
+                        ]
+                    }
+                ];
+
+                this.scoreRanges = [
+                    { min: 0, max: 5, message: "В мрачных и зловещих подземельях герой страдал от беспощадных пыток адептов культа Пыниуса. И помни, что эта захватывающая атмосфера мрака и приключений ожидает тебя в замечательной игре - Baldur's Gate 3!", image: 'https://nownownow.ru/wp-content/uploads/2022/07/engin-akyurt-3oroqejy9la-unsplash-scaled-e1656851799506.jpg' },
+                    { min: 5, max: 10, message: "Герой, примкнувший к культу Пыниуса, оказался запутанным в сети интриг и предательства со стороны других последователей, борющихся за власть в империи. Жестокость и ужас стали непременными спутниками на этом темном пути. И помни, что эта захватывающая атмосфера мрака и приключений ожидает тебя в замечательной игре - Baldur's Gate 3!" },
+                    { min: 10, max: 15, message: "Герой, искал спасения от темного пути, на который он отправился, и нашел убежище в империи Трапос. Но здесь, в краю культа похоти и разврата, он обнаружил, что тьма не оставляет его и здесь. Вокруг него царит безумие и извращение, и он оказывается пленником собственных сомнений и желаний, погрязнув в вихре соблазнов и страстей. И помни, что эта захватывающая атмосфера мрака и приключений ожидает тебя в замечательной игре - Baldur's Gate 3!" },
+                ];
+
+                this.currentQuestionIndex = 0;
+                this.totalScore = 0;
+                this.questionElement = document.getElementById('question');
+                this.buttonContainer = document.getElementById('button-container');
+                this.resultMessageElement = document.getElementById('result-message');
+                this.restartButton = document.getElementById('restart-button');
+                this.restartButton.addEventListener('click', () => this.restartGame());
+                this.displayQuestion(this.currentQuestionIndex);
+            }
+
+            displayQuestion(index) {
+                const currentQuestion = this.dialogueData[index];
+                this.questionElement.textContent = currentQuestion.question;
+                this.clearButtons();
+
+                if (currentQuestion.answers.length > 0) {
+                    this.createButtons(currentQuestion.answers);
+                }
+            }
+
+            selectAnswer(answer) {
+                const currentQuestion = this.dialogueData[this.currentQuestionIndex];
+                const selectedAnswer = currentQuestion.answers.find(a => a.text === answer);
+                if (selectedAnswer) {
+                    this.totalScore += selectedAnswer.value;
+                }
+
+                this.currentQuestionIndex += 1;
+                if (this.currentQuestionIndex >= this.dialogueData.length) {
+                    this.displayResult();
+                } else {
+                    this.displayQuestion(this.currentQuestionIndex);
+                }
+            }
+
+            displayResult() {
+                this.questionElement.textContent = '';
+                this.clearButtons();
+
+                const result = this.getResult(this.totalScore);
+                this.resultMessageElement.textContent = `${result.message}`;
+                this.resultMessageElement.style.display = 'block';
+                this.restartButton.style.display = 'block';
+            }
+
+            getResult(score) {
+                for (const range of this.scoreRanges) {
+                    if (score >= range.min && score <= range.max) {
+                        return range;
+                    }
+                }
+                return '';
+            }
+
+            clearButtons() {
+                this.buttonContainer.innerHTML = '';
+            }
+
+            createButtons(answers) {
+                for (const answer of answers) {
+                    const button = document.createElement('button');
+                    button.textContent = answer.text;
+                    button.addEventListener('click', () => this.selectAnswer(answer.text));
+                    this.buttonContainer.appendChild(button);
+                }
+            }
+
+            restartGame() {
+                this.currentQuestionIndex = 0;
+                this.totalScore = 0;
+                this.resultMessageElement.style.display = 'none';
+                this.restartButton.style.display = 'none';
+                this.displayQuestion(this.currentQuestionIndex);
+                document.body.style.backgroundImage = this.background;
+            }
+        }
+
+        const game = new DialogGame();
+    </script>
+</body>
+</html>
